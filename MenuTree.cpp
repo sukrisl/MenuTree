@@ -26,10 +26,14 @@ MenuItem* MenuTree::getActive() {
         selected_ = *(activeList_->begin());
         menuPos_ = activeList_->begin();
     }
+    
+    selected_->runApp();
     return selected_; 
 }
 
 MenuItem* MenuTree::next() {
+    selected_->stopApp();
+
     std::list<MenuItem*>::iterator nextPos = std::next(menuPos_);
     if (nextPos != activeList_->end()) {
         menuPos_ = nextPos;
@@ -40,10 +44,13 @@ MenuItem* MenuTree::next() {
 }
 
 MenuItem* MenuTree::prev() {
+    selected_->stopApp();
+
     if (menuPos_ != activeList_->begin()) {
         std::list<MenuItem*>::iterator prevPos = std::prev(menuPos_);
         menuPos_ = prevPos;
         selected_ = *menuPos_;
+        selected_->runApp();
     }
 
     return selected_;
@@ -51,24 +58,29 @@ MenuItem* MenuTree::prev() {
 
 MenuItem* MenuTree::enter() {
     std::list<MenuItem*>* submenu = selected_->getSubmenu();
+    selected_->stopApp();
+
     if (!submenu->empty()) {
         std::list<MenuItem*>* prevList = activeList_;
         activeList_ = submenu;
         menuPos_ = activeList_->begin();
         selected_ = *menuPos_;
         selected_->setPrevSubmenu(prevList);
+        selected_->runApp();
     }
-
+    
     return selected_;
 }
 
 MenuItem* MenuTree::back() {
     MenuItem* parent = selected_->getParent();
+    selected_->stopApp();
 
     if (parent != NULL) {
         activeList_ = selected_->getPrevSubmenu();
         menuPos_ = std::find(activeList_->begin(), activeList_->end(), parent);
         selected_ = *menuPos_;
+        selected_->runApp();
     }
 
     return selected_;

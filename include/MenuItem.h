@@ -5,6 +5,9 @@
 #include <list>
 #include <string>
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 typedef void (*MenuCallback_t)();
 
 class MenuItem {
@@ -15,13 +18,17 @@ class MenuItem {
 
     std::list<MenuItem*>* prevSubmenuList_;
 
-    MenuCallback_t callback_ = NULL;
+    TaskHandle_t taskHandle = NULL;
+
+    static void menuTask(void* arg);
 
     MenuItem* searchSubmenu(std::string name);
 
  public:
     MenuItem(std::string name, MenuCallback_t callback, MenuItem* parent);
     ~MenuItem();
+
+    MenuCallback_t callback_ = NULL;
 
     MenuItem* addSubmenu(std::string name, MenuCallback_t callback);
     bool removeSubmenu(std::string name);
@@ -32,4 +39,7 @@ class MenuItem {
     std::list<MenuItem*>* getPrevSubmenu() { return prevSubmenuList_; }
     std::string getName() { return name_; }
     MenuItem* getParent() { return parent_; }
+
+    bool runApp();
+    bool stopApp();
 };

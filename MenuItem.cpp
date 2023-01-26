@@ -14,6 +14,14 @@ MenuItem::~MenuItem() {
     // TODO: Delete list of childs
 }
 
+void MenuItem::menuTask(void* arg) {
+    MenuItem* self = static_cast<MenuItem*>(arg);
+    while (true) {
+        self->callback_();
+        vTaskDelay(portMAX_DELAY);
+    }
+}
+
 MenuItem* MenuItem::searchSubmenu(std::string name) {
     std::list<MenuItem*>::iterator i;
     for (i = submenuList_.begin(); i != submenuList_.end() && (*i); ++i) {
@@ -47,5 +55,19 @@ bool MenuItem::removeSubmenu(std::string name) {
     submenuList_.erase(std::remove(submenuList_.begin(), submenuList_.end(), submenu), submenuList_.end());
     delete submenu;
 
+    return true;
+}
+
+bool MenuItem::runApp() {
+    if (callback_ == NULL) return false;
+    if (taskHandle == NULL) stopApp();
+    xTaskCreate(menuTask, name_.c_str(), 2048, (void*) this, 1, &this->taskHandle);
+    return true;
+}
+
+bool MenuItem::stopApp() {
+    if (this->taskHandle == NULL) return false;
+    vTaskDelete(this->taskHandle);
+    this->taskHandle = NULL;
     return true;
 }
