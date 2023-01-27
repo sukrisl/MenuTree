@@ -15,7 +15,6 @@ class MenuItem {
     std::string name_;
     MenuItem* parent_ = NULL;
     std::list<MenuItem*> submenuList_;
-
     std::list<MenuItem*>* prevSubmenuList_;
 
     TaskHandle_t taskHandle = NULL;
@@ -32,11 +31,10 @@ class MenuItem {
 
     MenuItem* addSubmenu(std::string name, MenuCallback_t callback);
     bool removeSubmenu(std::string name);
-
     void setPrevSubmenu(std::list<MenuItem*>* submenu) { prevSubmenuList_ = submenu; }
+    std::list<MenuItem*>* getPrevSubmenu() { return prevSubmenuList_; }
 
     std::list<MenuItem*>* getSubmenu() { return &submenuList_; }
-    std::list<MenuItem*>* getPrevSubmenu() { return prevSubmenuList_; }
     std::string getName() { return name_; }
     MenuItem* getParent() { return parent_; }
 
