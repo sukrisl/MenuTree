@@ -4,10 +4,15 @@
 
 static const char* TAG = "menu_item";
 
-MenuItem::MenuItem(std::string name, MenuCallback_t callback, MenuItem* parent) {
+MenuItem::MenuItem(MenuType_t type, std::string name, MenuCallback_t callback, MenuItem* parent) {
+    type_ = type;
     name_ = name;
     callback_ = callback;
     parent_ = parent;
+
+    if (type_ == MENU_TYPE_APP) {
+        queueHandle = xQueueCreate(10, sizeof(int8_t));
+    }
 }
 
 MenuItem::~MenuItem() {
@@ -16,9 +21,15 @@ MenuItem::~MenuItem() {
 
 void MenuItem::menuTask(void* arg) {
     MenuItem* self = static_cast<MenuItem*>(arg);
+    int8_t inc = 0;
     while (true) {
-        self->callback_();
-        vTaskDelay(portMAX_DELAY);
+        if (self->getType() == MENU_TYPE_APP) {
+            self->callback_(inc);
+            xQueueReceive(self->queueHandle, &inc, portMAX_DELAY);
+        } else {
+            self->callback_(0);
+            vTaskDelay(portMAX_DELAY);
+        }
     }
 }
 
@@ -30,7 +41,7 @@ MenuItem* MenuItem::searchSubmenu(std::string name) {
     return NULL;
 }
 
-MenuItem* MenuItem::addSubmenu(std::string name, MenuCallback_t callback) {
+MenuItem* MenuItem::addSubmenu(MenuType_t type, std::string name, MenuCallback_t callback) {
     bool childNameDuplicate = searchSubmenu(name);
 
     if (childNameDuplicate) {
@@ -38,7 +49,7 @@ MenuItem* MenuItem::addSubmenu(std::string name, MenuCallback_t callback) {
         return NULL;
     }
 
-    MenuItem* child = new MenuItem(name, callback, this);
+    MenuItem* child = new MenuItem(type, name, callback, this);
     submenuList_.push_back(child);
     return child;
 }
@@ -70,4 +81,14 @@ bool MenuItem::stopApp() {
     vTaskDelete(this->taskHandle);
     this->taskHandle = NULL;
     return true;
+}
+
+void MenuItem::increment() {
+    int8_t inc = 1;
+    xQueueSend(queueHandle, &inc, portMAX_DELAY);
+}
+
+void MenuItem::decrement() {
+    int8_t inc = -1;
+    xQueueSend(queueHandle, &inc, portMAX_DELAY);
 }

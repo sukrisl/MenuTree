@@ -5,7 +5,7 @@
 static const char* TAG = "menu_struct";
 
 MenuTree::MenuTree() {
-    root_ = new MenuItem("root", NULL, NULL);
+    root_ = new MenuItem(MENU_TYPE_CONTAINER, "root", NULL, NULL);
     selected_ = root_;
 }
 
@@ -23,11 +23,11 @@ bool MenuTree::load() {
     return true;
 }
 
-MenuItem* MenuTree::create(std::string name, MenuCallback_t callback, MenuItem* parent) {
-    if (parent == NULL) return root_->addSubmenu(name, callback);
+MenuItem* MenuTree::create(MenuType_t type, std::string name, MenuCallback_t callback, MenuItem* parent) {
+    if (parent == NULL) return root_->addSubmenu(type, name, callback);
 
     std::string submenuName = parent->getName() + "/" + name;
-    return parent->addSubmenu(submenuName, callback);
+    return parent->addSubmenu(type, submenuName, callback);
 }
 
 bool MenuTree::remove(MenuItem* item) {
@@ -44,6 +44,10 @@ MenuItem* MenuTree::next() {
         menuPos_ = nextPos;
         selected_ = *menuPos_;
         selected_->runApp();
+    } else {
+        if (selected_->getType() == MENU_TYPE_APP) {
+            selected_->increment();
+        }
     }
 
     return selected_;
@@ -56,6 +60,10 @@ MenuItem* MenuTree::prev() {
         menuPos_ = prevPos;
         selected_ = *menuPos_;
         selected_->runApp();
+    } else {
+        if (selected_->getType() == MENU_TYPE_APP) {
+            selected_->decrement();
+        }
     }
 
     return selected_;
@@ -71,6 +79,8 @@ MenuItem* MenuTree::enter() {
         menuPos_ = activeList_->begin();
         selected_ = *menuPos_;
         selected_->runApp();
+    } else {
+        back();
     }
     
     return selected_;

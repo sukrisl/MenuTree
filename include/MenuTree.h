@@ -18,7 +18,7 @@ class MenuTree {
 
     bool load();
 
-    MenuItem* create(std::string name, MenuCallback_t callback, MenuItem* parent = NULL);
+    MenuItem* create(MenuType_t type, std::string name, MenuCallback_t callback, MenuItem* parent = NULL);
     bool remove(MenuItem* item);
 
     MenuItem* getActive() { return selected_; }
