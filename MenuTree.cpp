@@ -4,31 +4,35 @@
 
 static const char* TAG = "menu_struct";
 
-MenuItem* MenuTree::create(std::string name, MenuCallback_t callback, MenuItem* parent) {
-    if (parent != NULL) {
-        std::string submenuName = parent->getName() + "/" + name;
-        return parent->addSubmenu(submenuName, callback);
+MenuTree::MenuTree() {
+    root_ = new MenuItem("root", NULL, NULL);
+    selected_ = root_;
+}
+
+bool MenuTree::load() {
+    activeList_ = root_->getSubmenu();
+    if (activeList_->empty()) {
+        ESP_LOGW(TAG, "Menu empty, create a menu first.");
+        return false;
     }
 
-    MenuItem* item = new MenuItem(name, callback, NULL);
-    list_.push_back(item);
-    return item;
+    menuPos_ = activeList_->begin();
+    selected_ = *menuPos_;
+    selected_->runApp();
+    return true;
+}
+
+MenuItem* MenuTree::create(std::string name, MenuCallback_t callback, MenuItem* parent) {
+    if (parent == NULL) return root_->addSubmenu(name, callback);
+
+    std::string submenuName = parent->getName() + "/" + name;
+    return parent->addSubmenu(submenuName, callback);
 }
 
 bool MenuTree::remove(MenuItem* item) {
     if (item == NULL) return false;
     delete item;
     return true;
-}
-
-MenuItem* MenuTree::getActive() {
-    if (selected_ == NULL) {
-        selected_ = *(activeList_->begin());
-        menuPos_ = activeList_->begin();
-    }
-    
-    selected_->runApp();
-    return selected_; 
 }
 
 MenuItem* MenuTree::next() {
@@ -76,7 +80,7 @@ MenuItem* MenuTree::back() {
     MenuItem* parent = selected_->getParent();
     selected_->stopApp();
 
-    if (parent != NULL) {
+    if (parent != root_) {
         activeList_ = selected_->getPrevSubmenu();
         menuPos_ = std::find(activeList_->begin(), activeList_->end(), parent);
         selected_ = *menuPos_;
@@ -108,5 +112,6 @@ void MenuTree::printAllMenu() {
     ESP_LOGI(TAG, "                Menu List               ");
     ESP_LOGI(TAG, "========================================");
 
-    printMenu(&list_, 0);
+    std::list<MenuItem*>* list = root_->getSubmenu();
+    printMenu(list, 0);
 }

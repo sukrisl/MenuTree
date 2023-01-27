@@ -4,21 +4,24 @@
 
 class MenuTree {
  private:
-    std::list<MenuItem*> list_;
-    std::list<MenuItem*>* activeList_ = &list_;
-    MenuItem* selected_ = NULL;
+    MenuItem* root_;
+
+    std::list<MenuItem*>* activeList_;
     std::list<MenuItem*>::iterator menuPos_;
+    MenuItem* selected_;
 
     void printMenu(std::list<MenuItem*>* list, uint8_t depth);
 
  public:
-    MenuTree() {}
+    MenuTree();
     ~MenuTree() {}
+
+    bool load();
 
     MenuItem* create(std::string name, MenuCallback_t callback, MenuItem* parent = NULL);
     bool remove(MenuItem* item);
 
-    MenuItem* getActive();
+    MenuItem* getActive() { return selected_; }
 
     MenuItem* next();
     MenuItem* prev();
