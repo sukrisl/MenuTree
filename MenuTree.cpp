@@ -79,6 +79,11 @@ MenuItem* MenuTree::enter() {
 MenuItem* MenuTree::back() {
     MenuItem* parent = selected_->getParent();
 
+    if (parent == root_) {
+        load();
+        return selected_;
+    }
+
     if (parent != NULL) {
         selected_->stopApp();
         selected_ = parent;
